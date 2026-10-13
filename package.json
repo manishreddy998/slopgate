@@ -1,0 +1,65 @@
+{
+  "name": "slopgate",
+  "version": "0.1.0",
+  "description": "Stop AI coding agents from installing hallucinated, typosquatted, or suspiciously new packages.",
+  "keywords": [
+    "slopsquatting",
+    "typosquatting",
+    "supply-chain",
+    "claude-code",
+    "cursor",
+    "codex",
+    "gemini",
+    "mcp",
+    "npm",
+    "pypi",
+    "security"
+  ],
+  "license": "MIT",
+  "author": "Manish (https://github.com/manishreddy998)",
+  "homepage": "https://github.com/manishreddy998/slopgate#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manishreddy998/slopgate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/manishreddy998/slopgate/issues"
+  },
+  "type": "module",
+  "bin": {
+    "slopgate": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "action.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.4",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4"
+  }
+}
