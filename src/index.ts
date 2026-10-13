@@ -3,6 +3,10 @@ export { commandInstallsPackages, normalizePypi, parseRequirementsTxt, parseShel
 export { DEFAULT_CONFIG, loadConfig } from './config.js'
 export { lookupPackage } from './registry/lookup.js'
 export type { LookupContext } from './registry/lookup.js'
+export { evaluateCommand } from './evaluate.js'
+export { explainResults } from './explain.js'
+export { scorePackage } from './risk/score.js'
+export { analyzeName } from './risk/typo.js'
 export type {
   Ecosystem,
   OfflinePolicy,
