@@ -26,7 +26,7 @@ import { formatScan, scanProject } from './scan/scan.js'
 import type { LookupContext } from './registry/lookup.js'
 import { worstVerdict } from './risk/score.js'
 import { ECOSYSTEMS, type Ecosystem, type PackageRef } from './types.js'
-import { version } from './version.js'
+import { version, packageName } from './version.js'
 
 const HELP = `slopgate ${version}
 Block missing, typosquatted, and newly published packages before install.
@@ -85,7 +85,7 @@ export async function main(argv: string[], io: CliIo = {}): Promise<number> {
   try {
     switch (args.command) {
       case 'init':
-        return initCommand(args, cwd, io.homeDir ?? homedir(), stdout, stderr)
+        return initCommand(args, cwd, io.homeDir ?? homedir(), env, stdout, stderr)
       case 'check':
         return await checkCommand(args, cwd, env, io, stdout)
       case 'hook':
@@ -108,14 +108,15 @@ function initCommand(
   args: ParsedArgs,
   cwd: string,
   homeDir: string,
+  env: NodeJS.ProcessEnv,
   stdout: (chunk: string) => void,
   stderr: (chunk: string) => void,
 ): number {
   const global = args.flags.get('global') === true
   if (!global && args.flags.get('no-install') !== true) {
-    const installed = ensureDevDependency(cwd)
+    const installed = ensureDevDependency(cwd, env)
     if (installed === 'failed') {
-      stderr('slopgate: could not add slopgate as a dev dependency. The hook will call this copy of the program.\n')
+      stderr(`slopgate: could not add ${packageName} as a dev dependency. Hooks will call npx -y ${packageName}.\n`)
     }
   }
   for (const client of selectedClients(args.flags.get('only'))) {
@@ -271,7 +272,7 @@ function parseEcosystem(value: string | boolean | undefined): Ecosystem {
   throw new Error(`unknown package source ${value}. Use npm, pypi, cargo, or go.`)
 }
 
-function ensureDevDependency(cwd: string): 'installed' | 'skipped' | 'failed' {
+function ensureDevDependency(cwd: string, env: NodeJS.ProcessEnv): 'installed' | 'skipped' | 'failed' {
   const pkgPath = join(cwd, 'package.json')
   if (!existsSync(pkgPath)) return 'skipped'
   try {
@@ -280,13 +281,14 @@ function ensureDevDependency(cwd: string): 'installed' | 'skipped' | 'failed' {
       dependencies?: Record<string, string>
       devDependencies?: Record<string, string>
     }
-    if (pkg.name === 'slopgate') return 'skipped'
-    if (pkg.dependencies?.slopgate || pkg.devDependencies?.slopgate) return 'skipped'
+    if (pkg.name === packageName) return 'skipped'
+    if (pkg.dependencies?.[packageName] || pkg.devDependencies?.[packageName]) return 'skipped'
   } catch {
     return 'skipped'
   }
-  const result = spawnSync('npm', ['install', '--save-dev', '--silent', `slopgate@${version}`], {
+  const result = spawnSync('npm', ['install', '--save-dev', '--silent', `${packageName}@${version}`], {
     cwd,
+    env,
     encoding: 'utf8',
   })
   return result.status === 0 ? 'installed' : 'failed'

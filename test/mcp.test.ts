@@ -117,9 +117,11 @@ describe('init mcp config', () => {
       mcpServers: { slopgate: { args: string[] } }
     }
     expect(gemini.hooks.BeforeTool).toHaveLength(1)
-    expect(gemini.mcpServers.slopgate.args.at(-1)).toBe('mcp')
+    expect(gemini.mcpServers.slopgate.args).toEqual(['-y', '@slop-gate/cli', 'mcp'])
     const toml = readFileSync(join(cwd, '.codex', 'config.toml'), 'utf8')
     expect(toml).toContain('[mcp_servers.slopgate]')
+    expect(toml).toContain('command = "npx"')
+    expect(toml).toContain('"@slop-gate/cli"')
     expect(toml).toContain('"mcp"')
 
     const again = installMcpServer('codex', join(cwd, '.codex', 'config.toml'), 'node', ['cli.js', 'mcp'])

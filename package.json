@@ -1,5 +1,5 @@
 {
-  "name": "slopgate",
+  "name": "@slop-gate/cli",
   "version": "0.1.0",
   "description": "Block missing, typosquatted, and newly published packages before they are installed.",
   "keywords": [

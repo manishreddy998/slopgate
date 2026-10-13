@@ -49,6 +49,8 @@ CI uses the same ignores. Do not commit a `slopgate.config.json` that allowlists
 
 The hook fails open unless `SLOPGATE_FAIL_CLOSED=1`. Project config can be edited by the same client the hook is guarding. Allow lists are unioned, so set `SLOPGATE_IGNORE_PROJECT_CONFIG=1` when the project file must not be able to add an allow entry.
 
+`init` adds `@slop-gate/cli` as a dev dependency. Hook commands and the MCP server run `npx -y @slop-gate/cli`.
+
 Do not add telemetry.
 
 ## Publishing

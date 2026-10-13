@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-export const version: string = (
-  JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')) as { version: string }
-).version
+const manifest = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')) as {
+  name: string
+  version: string
+}
+
+export const version: string = manifest.version
+export const packageName: string = manifest.name

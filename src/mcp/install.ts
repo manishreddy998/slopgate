@@ -1,15 +1,15 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { HookClient } from '../hook/format.js'
-import { cliJsPath } from '../hook/install.js'
+import { packageName } from '../version.js'
 
 export interface McpInstallResult {
   path: string
   changed: boolean
 }
 
-export function mcpLaunch(executable = process.execPath, script = cliJsPath()): { command: string; args: string[] } {
-  return { command: executable, args: [script, 'mcp'] }
+export function mcpLaunch(): { command: string; args: string[] } {
+  return { command: 'npx', args: ['-y', packageName, 'mcp'] }
 }
 
 export function mcpConfigPath(client: HookClient, global: boolean, projectDir: string, homeDir: string): string {

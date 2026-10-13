@@ -1,14 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { HookClient } from './format.js'
+import { packageName } from '../version.js'
 
-export function cliJsPath(): string {
-  return join(dirname(fileURLToPath(import.meta.url)), '..', 'cli.js')
-}
-
-export function hookCommand(client: HookClient, executable = process.execPath, script = cliJsPath()): string {
-  return `${quote(executable)} ${quote(script)} hook --client ${client}`
+export function hookCommand(client: HookClient): string {
+  return `npx -y ${packageName} hook --client ${client}`
 }
 
 export function claudeSettingsPath(global: boolean, projectDir: string, homeDir: string): string {
@@ -94,7 +90,10 @@ function installPreToolHook(path: string, command: string, statusMessage?: strin
 
 function hasSlopgateCommand(handlers: unknown[]): boolean {
   return handlers.some(
-    (handler) => isRecord(handler) && typeof handler.command === 'string' && handler.command.includes('slopgate'),
+    (handler) =>
+      isRecord(handler) &&
+      typeof handler.command === 'string' &&
+      (handler.command.includes(packageName) || handler.command.includes('slopgate')),
   )
 }
 
@@ -134,9 +133,4 @@ function writeJson(path: string, value: unknown): void {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-}
-
-function quote(value: string): string {
-  if (/^[A-Za-z0-9_@%+=:,./-]+$/.test(value)) return value
-  return `'${value.replace(/'/g, `'\\''`)}'`
 }

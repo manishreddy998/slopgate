@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -7,6 +7,7 @@ import { installClaudeHook, installCursorHook, installGeminiHook } from '../src/
 import { runHook } from '../src/hook/run.js'
 import { DEFAULT_CONFIG } from '../src/config.js'
 import { MemoryCache } from '../src/cache.js'
+import { packageName, version } from '../src/version.js'
 
 const NOW = Date.parse('2026-10-13T00:00:00Z')
 
@@ -209,7 +210,7 @@ describe('other agent hooks', () => {
     const codex = JSON.parse(readFileSync(join(cwd, '.codex', 'hooks.json'), 'utf8')) as {
       hooks: { PreToolUse: Array<{ hooks: Array<{ command: string; statusMessage?: string }> }> }
     }
-    expect(codex.hooks.PreToolUse[0]?.hooks[0]?.command).toContain('--client codex')
+    expect(codex.hooks.PreToolUse[0]?.hooks[0]?.command).toBe('npx -y @slop-gate/cli hook --client codex')
     expect(codex.hooks.PreToolUse[0]?.hooks[0]?.statusMessage).toContain('slopgate')
 
     const broken = join(cwd, '.cursor', 'hooks.json')
@@ -222,6 +223,47 @@ describe('other agent hooks', () => {
     })
     expect(failed).toBe(2)
     expect(readFileSync(broken, 'utf8')).toBe(original)
+  })
+
+  it('adds @slop-gate/cli and points the hook at that package', async () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'slopgate-dep-'))
+    const bin = mkdtempSync(join(tmpdir(), 'slopgate-npm-'))
+    const log = join(cwd, 'npm-args.txt')
+    writeFileSync(join(cwd, 'package.json'), JSON.stringify({ name: 'demo-app', version: '1.0.0' }))
+    writeFileSync(join(bin, 'npm'), `#!/bin/sh\nprintf '%s\\n' "$*" >> "$NPM_ARGS"\nexit 0\n`)
+    chmodSync(join(bin, 'npm'), 0o755)
+    const err: string[] = []
+    const code = await main(['init', '--only', 'claude', '--no-mcp'], {
+      cwd,
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH ?? ''}`, NPM_ARGS: log },
+      stdout: () => {},
+      stderr: (chunk) => err.push(chunk),
+    })
+    expect(code).toBe(0)
+    expect(err.join('')).toBe('')
+    expect(readFileSync(log, 'utf8').trim()).toBe(`install --save-dev --silent ${packageName}@${version}`)
+    const settings = JSON.parse(readFileSync(join(cwd, '.claude', 'settings.json'), 'utf8')) as {
+      hooks: { PreToolUse: Array<{ hooks: Array<{ command: string }> }> }
+    }
+    expect(settings.hooks.PreToolUse[0]?.hooks[0]?.command).toBe('npx -y @slop-gate/cli hook --client claude')
+
+    writeFileSync(
+      join(cwd, 'package.json'),
+      JSON.stringify({ name: 'demo-app', version: '1.0.0', devDependencies: { '@slop-gate/cli': version } }),
+    )
+    writeFileSync(join(bin, 'npm'), '#!/bin/sh\nexit 1\n')
+    const again = await main(['init', '--only', 'claude', '--no-mcp'], {
+      cwd,
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH ?? ''}` },
+      stdout: () => {},
+      stderr: (chunk) => err.push(chunk),
+    })
+    expect(again).toBe(0)
+    expect(settings.hooks.PreToolUse[0]?.hooks).toHaveLength(1)
+    const saved = JSON.parse(readFileSync(join(cwd, '.claude', 'settings.json'), 'utf8')) as {
+      hooks: { PreToolUse: Array<{ hooks: unknown[] }> }
+    }
+    expect(saved.hooks.PreToolUse[0]?.hooks).toHaveLength(1)
   })
 })
 
