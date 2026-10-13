@@ -8,7 +8,16 @@ import { DiskCache, defaultCachePath } from './cache.js'
 import { loadConfig } from './config.js'
 import { formatReport } from './explain.js'
 import { scoreRefs } from './evaluate.js'
-import { claudeSettingsPath, hookCommand, installClaudeHook } from './hook/install.js'
+import type { HookClient } from './hook/format.js'
+import {
+  hookCommand,
+  installClaudeHook,
+  installCodexHook,
+  installCursorHook,
+  installGeminiHook,
+  integrationPath,
+  type InstallResult,
+} from './hook/install.js'
 import { runHook } from './hook/run.js'
 import type { LookupContext } from './registry/lookup.js'
 import { worstVerdict } from './risk/score.js'
@@ -19,12 +28,13 @@ const HELP = `slopgate ${version}
 Stop AI coding agents from installing hallucinated packages.
 
 Usage
-  slopgate init [--global]
+  slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install]
   slopgate check <package...> [--ecosystem npm|pypi|cargo|go] [--json] [--strict]
   slopgate hook [--client claude|cursor|codex|gemini|auto] [--command <shell>]
 
+  npx slopgate init
   slopgate check react-codeshift
-  slopgate hook --client claude --command "npm install react"
+  slopgate hook --client cursor --command "npm install react"
 
 No telemetry. Registry requests stay between you and the registry.
 `
@@ -94,14 +104,46 @@ function initCommand(
       stderr('slopgate: could not add the local dev dependency. The hook will call this copy of the CLI.\n')
     }
   }
-  const path = claudeSettingsPath(global, cwd, homeDir)
-  const result = installClaudeHook(path, hookCommand('claude'))
-  stdout(
-    result.changed
-      ? `Installed the Claude Code hook in ${result.path}\n`
-      : `Claude Code hook already present in ${result.path}\n`,
-  )
+  for (const client of selectedClients(args.flags.get('only'))) {
+    const path = integrationPath(client, global, cwd, homeDir)
+    const result = installClient(client, path, hookCommand(client))
+    stdout(
+      result.changed
+        ? `Installed the ${CLIENT_LABEL[client]} hook in ${result.path}\n`
+        : `${CLIENT_LABEL[client]} hook already present in ${result.path}\n`,
+    )
+  }
   return 0
+}
+
+const CLIENT_LABEL: Record<HookClient, string> = {
+  claude: 'Claude Code',
+  cursor: 'Cursor',
+  codex: 'Codex',
+  gemini: 'Gemini CLI',
+}
+
+const CLIENTS: readonly HookClient[] = ['claude', 'cursor', 'codex', 'gemini']
+
+function selectedClients(only: string | boolean | undefined): HookClient[] {
+  if (only === undefined) return [...CLIENTS]
+  if (typeof only !== 'string') throw new Error('init --only needs a comma-separated client list')
+  const clients = only
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
+  if (clients.length === 0) throw new Error('init --only needs at least one client')
+  for (const client of clients) {
+    if (!(CLIENTS as readonly string[]).includes(client)) throw new Error(`unknown client ${client}`)
+  }
+  return clients as HookClient[]
+}
+
+function installClient(client: HookClient, path: string, command: string): InstallResult {
+  if (client === 'claude') return installClaudeHook(path, command)
+  if (client === 'cursor') return installCursorHook(path, command)
+  if (client === 'codex') return installCodexHook(path, command)
+  return installGeminiHook(path, command)
 }
 
 async function checkCommand(

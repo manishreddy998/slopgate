@@ -20,8 +20,60 @@ export interface InstallResult {
   changed: boolean
 }
 
-/** Merge a Claude Code PreToolUse hook. Existing hooks are left in place. */
+/** Merge a Claude Code or Codex PreToolUse hook. Existing hooks are left in place. */
 export function installClaudeHook(path: string, command: string): InstallResult {
+  return installPreToolHook(path, command)
+}
+
+export function installCodexHook(path: string, command: string): InstallResult {
+  return installPreToolHook(path, command, 'Checking packages with slopgate')
+}
+
+export function installCursorHook(path: string, command: string): InstallResult {
+  const settings = readJsonObject(path)
+  if (settings.version === undefined) settings.version = 1
+  const hooks = objectAt(settings, 'hooks')
+  const handlers = arrayAt(hooks, 'beforeShellExecution')
+  if (hasSlopgateCommand(handlers)) return { path, changed: false }
+  handlers.push({ command, timeout: 25 })
+  writeJson(path, settings)
+  return { path, changed: true }
+}
+
+export function installGeminiHook(path: string, command: string): InstallResult {
+  const settings = readJsonObject(path)
+  const hooks = objectAt(settings, 'hooks')
+  const groups = arrayAt(hooks, 'BeforeTool')
+  const found = groups.find((item) => isRecord(item) && item.matcher === 'run_shell_command')
+  const group: Record<string, unknown> = isRecord(found) ? found : { matcher: 'run_shell_command', hooks: [] }
+  if (group !== found) groups.push(group)
+  const handlers = arrayAt(group, 'hooks')
+  if (handlers.some((handler) => isRecord(handler) && handler.name === 'slopgate')) return { path, changed: false }
+  handlers.push({
+    name: 'slopgate',
+    type: 'command',
+    command,
+    timeout: 25000,
+    description: 'Block hallucinated, typosquatted, and suspiciously new package installs',
+  })
+  writeJson(path, settings)
+  return { path, changed: true }
+}
+
+export function integrationPath(
+  client: HookClient,
+  global: boolean,
+  projectDir: string,
+  homeDir: string,
+): string {
+  if (client === 'claude') return claudeSettingsPath(global, projectDir, homeDir)
+  const root = global ? homeDir : projectDir
+  if (client === 'cursor') return join(root, '.cursor', 'hooks.json')
+  if (client === 'codex') return join(root, '.codex', 'hooks.json')
+  return join(root, '.gemini', 'settings.json')
+}
+
+function installPreToolHook(path: string, command: string, statusMessage?: string): InstallResult {
   const settings = readJsonObject(path)
   const hooks = objectAt(settings, 'hooks')
   const groups = arrayAt(hooks, 'PreToolUse')
@@ -29,12 +81,21 @@ export function installClaudeHook(path: string, command: string): InstallResult 
   const group: Record<string, unknown> = isRecord(found) ? found : { matcher: 'Bash', hooks: [] }
   if (group !== found) groups.push(group)
   const handlers = arrayAt(group, 'hooks')
-  if (handlers.some((handler) => isRecord(handler) && typeof handler.command === 'string' && handler.command.includes('slopgate'))) {
-    return { path, changed: false }
-  }
-  handlers.push({ type: 'command', command, timeout: 25 })
+  if (hasSlopgateCommand(handlers)) return { path, changed: false }
+  handlers.push({
+    type: 'command',
+    command,
+    timeout: 25,
+    ...(statusMessage ? { statusMessage } : {}),
+  })
   writeJson(path, settings)
   return { path, changed: true }
+}
+
+function hasSlopgateCommand(handlers: unknown[]): boolean {
+  return handlers.some(
+    (handler) => isRecord(handler) && typeof handler.command === 'string' && handler.command.includes('slopgate'),
+  )
 }
 
 function readJsonObject(path: string): Record<string, unknown> {

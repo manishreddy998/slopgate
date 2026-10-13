@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { main } from '../src/cli.js'
-import { installClaudeHook } from '../src/hook/install.js'
+import { installClaudeHook, installCursorHook, installGeminiHook } from '../src/hook/install.js'
 import { runHook } from '../src/hook/run.js'
 import { DEFAULT_CONFIG } from '../src/config.js'
 import { MemoryCache } from '../src/cache.js'
@@ -110,6 +110,83 @@ describe('Claude Code hook', () => {
       'echo keep-me',
       'node /opt/slopgate/cli.js hook --client claude',
     ])
+  })
+
+  it('denies a Cursor shell install with the reason in both messages', async () => {
+    const blocked = await runHook({
+      stdin: JSON.stringify({ command: 'npm install react-codeshift', cwd: '/tmp/app' }),
+      client: 'cursor',
+      cwd: mkdtempSync(join(tmpdir(), 'slopgate-cursor-')),
+      ctx: { config: DEFAULT_CONFIG, cache: new MemoryCache(), fetchImpl: registry, now: () => NOW },
+    })
+    const payload = JSON.parse(blocked.stdout) as { permission: string; user_message: string; agent_message: string }
+    expect(payload.permission).toBe('deny')
+    expect(payload.user_message).toContain('react-codeshift')
+    expect(payload.agent_message).toBe(payload.user_message)
+  })
+})
+
+describe('other agent hooks', () => {
+  it('keeps an existing Cursor hook and skips a second Gemini install', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'slopgate-agents-'))
+    const cursorPath = join(dir, '.cursor', 'hooks.json')
+    mkdirSync(join(dir, '.cursor'), { recursive: true })
+    writeFileSync(
+      cursorPath,
+      JSON.stringify({ version: 1, hooks: { beforeShellExecution: [{ command: 'echo keep-me' }] } }),
+    )
+    const cursor = installCursorHook(cursorPath, 'node /opt/slopgate/cli.js hook --client cursor')
+    expect(cursor.changed).toBe(true)
+    const saved = JSON.parse(readFileSync(cursorPath, 'utf8')) as {
+      hooks: { beforeShellExecution: Array<{ command: string; timeout?: number }> }
+    }
+    expect(saved.hooks.beforeShellExecution.map((hook) => hook.command)).toEqual([
+      'echo keep-me',
+      'node /opt/slopgate/cli.js hook --client cursor',
+    ])
+    expect(saved.hooks.beforeShellExecution[1]?.timeout).toBe(25)
+
+    const geminiPath = join(dir, '.gemini', 'settings.json')
+    const command = 'node /opt/slopgate/cli.js hook --client gemini'
+    expect(installGeminiHook(geminiPath, command).changed).toBe(true)
+    expect(installGeminiHook(geminiPath, command).changed).toBe(false)
+    const gemini = JSON.parse(readFileSync(geminiPath, 'utf8')) as {
+      hooks: { BeforeTool: Array<{ matcher: string; hooks: Array<{ name: string; timeout: number }> }> }
+    }
+    expect(gemini.hooks.BeforeTool[0]?.matcher).toBe('run_shell_command')
+    expect(gemini.hooks.BeforeTool[0]?.hooks[0]?.timeout).toBe(25000)
+  })
+
+  it('init writes project hooks for every client and leaves a broken file alone', async () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'slopgate-init-'))
+    const out: string[] = []
+    const code = await main(['init', '--no-install'], {
+      cwd,
+      homeDir: mkdtempSync(join(tmpdir(), 'slopgate-home-')),
+      stdout: (chunk) => out.push(chunk),
+    })
+    expect(code).toBe(0)
+    const text = out.join('')
+    expect(text).toContain('Claude Code')
+    expect(text).toContain('Cursor')
+    expect(text).toContain('Codex')
+    expect(text).toContain('Gemini CLI')
+    const codex = JSON.parse(readFileSync(join(cwd, '.codex', 'hooks.json'), 'utf8')) as {
+      hooks: { PreToolUse: Array<{ hooks: Array<{ command: string; statusMessage?: string }> }> }
+    }
+    expect(codex.hooks.PreToolUse[0]?.hooks[0]?.command).toContain('--client codex')
+    expect(codex.hooks.PreToolUse[0]?.hooks[0]?.statusMessage).toContain('slopgate')
+
+    const broken = join(cwd, '.cursor', 'hooks.json')
+    const original = '{not json'
+    writeFileSync(broken, original)
+    const failed = await main(['init', '--no-install', '--only', 'cursor'], {
+      cwd,
+      stdout: () => {},
+      stderr: () => {},
+    })
+    expect(failed).toBe(2)
+    expect(readFileSync(broken, 'utf8')).toBe(original)
   })
 })
 
