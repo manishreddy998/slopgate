@@ -6,23 +6,23 @@
   <circle cx="28" cy="24" r="6" fill="#c4554a"/>
   <circle cx="48" cy="24" r="6" fill="#d2b06a"/>
   <circle cx="68" cy="24" r="6" fill="#7ea37a"/>
-  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm registry, 13 Oct 2026</text>
+  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm site, 13 Oct 2026</text>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
 <text x="24" y="64" fill="#f4efe6">$ node dist/cli.js check react-codeshift</text>
 <text x="24" y="84" fill="#e07a70">slopgate blocked this install.</text>
 <text x="24" y="104" fill="#d9d0c1"> </text>
 <text x="24" y="124" fill="#e07a70">react-codeshift (npm) — risk 92/100 — block</text>
-<text x="24" y="144" fill="#e6d3a1">  • No downloads in the last week. The floor is 100.</text>
-<text x="24" y="164" fill="#e6d3a1">  • Only one version has ever been published.</text>
-<text x="24" y="184" fill="#e6d3a1">  • No source repository is linked.</text>
-<text x="24" y="204" fill="#e6d3a1">  • The publisher describes it as a placeholder ("🚫 Placeholder to prevent dependency confusion."), not</text>
-<text x="24" y="224" fill="#e6d3a1">    a library to install.</text>
+<text x="24" y="144" fill="#e6d3a1">  • No downloads in the last week. The minimum is 100.</text>
+<text x="24" y="164" fill="#e6d3a1">  • Only one version has been published.</text>
+<text x="24" y="184" fill="#e6d3a1">  • The listing has no link to source code.</text>
+<text x="24" y="204" fill="#e6d3a1">  • The owner says this is a placeholder ("🚫 Placeholder to prevent dependency confusion."), not a</text>
+<text x="24" y="224" fill="#e6d3a1">    package you should install.</text>
 <text x="24" y="244" fill="#d9d0c1">  Closest real packages:</text>
-<text x="24" y="264" fill="#e6d3a1">  • react-codemod — shares a long prefix with react-codemod</text>
-<text x="24" y="284" fill="#e6d3a1">  • jscodeshift — contains "codeshift", the distinctive part of jscodeshift</text>
+<text x="24" y="264" fill="#e6d3a1">  • react-codemod — starts with the same letters as react-codemod</text>
+<text x="24" y="284" fill="#e6d3a1">  • jscodeshift — contains "codeshift", which is also in jscodeshift</text>
 <text x="24" y="304" fill="#d9d0c1"> </text>
-<text x="24" y="324" fill="#d9d0c1">If one of those is what you meant, install that instead. Add a private name to allow or trustedScopes in</text>
-<text x="24" y="344" fill="#d9d0c1">slopgate.config.json when the miss is expected.</text>
+<text x="24" y="324" fill="#d9d0c1">If one of these is the package you wanted, install that. To allow a private name, add it under allow or</text>
+<text x="24" y="344" fill="#d9d0c1">trustedScopes in slopgate.config.json.</text>
 <text x="24" y="364" fill="#f4efe6">$ node dist/cli.js check react</text>
 <text x="24" y="384" fill="#8fbf88">react (npm) — risk 0/100 — allow</text>
   </g>

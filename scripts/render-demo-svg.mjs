@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
-// Renders docs/demo.svg from docs/demo-check.txt.
-// The transcript is stdout from `node dist/cli.js check`, captured against the public npm registry on 2026-10-13.
+// Build docs/demo.svg from docs/demo-check.txt.
+// The text is real output from `node dist/cli.js check` on the public npm site, 13 Oct 2026.
 const source = new URL('../docs/demo-check.txt', import.meta.url)
 const target = new URL('../docs/demo.svg', import.meta.url)
 const width = 980
@@ -30,7 +30,7 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
   <circle cx="28" cy="24" r="6" fill="#c4554a"/>
   <circle cx="48" cy="24" r="6" fill="#d2b06a"/>
   <circle cx="68" cy="24" r="6" fill="#7ea37a"/>
-  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm registry, 13 Oct 2026</text>
+  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm site, 13 Oct 2026</text>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
 ${body}
   </g>
