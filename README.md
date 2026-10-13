@@ -49,7 +49,21 @@ No telemetry. Registry requests stay between you and the registry.
 
 ![slopgate scan blocks the bad-skill fixture](docs/images/scan-bad-skill.png)
 
-Recorded from `@slop-gate/cli` 0.1.2 against the public npm registry on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same check transcript is in [docs/demo-check.txt](docs/demo-check.txt).
+### Python packages
+
+slopgate checks PyPI names before `pip`, `uv`, or `poetry` installs them. `panadas` is a one-letter lookalike of `pandas` with one release, no source link, and no license:
+
+![slopgate blocks the panadas lookalike](docs/images/check-pypi-panadas.png)
+
+A name that is not on PyPI at all is blocked:
+
+![slopgate blocks a missing PyPI package](docs/images/check-pypi-missing.png)
+
+A real package passes:
+
+![slopgate allows pandas](docs/images/check-pypi-pandas.png)
+
+Recorded from `@slop-gate/cli` 0.1.2 against the public npm and PyPI registries on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same check transcript is in [docs/demo-check.txt](docs/demo-check.txt).
 
 ## Why `react-codeshift` is blocked
 
