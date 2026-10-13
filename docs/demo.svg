@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="980" height="416" viewBox="0 0 980 416" role="img">
   <title>slopgate blocks react-codeshift and allows react</title>
-  <desc>Output of node dist/cli.js check react-codeshift and node dist/cli.js check react on 2026-10-13.</desc>
+  <desc>Output of @slop-gate/cli 0.1.0 checking react-codeshift and react on 2026-10-13.</desc>
   <rect width="980" height="416" rx="14" fill="#1c1915"/>
   <circle cx="28" cy="24" r="6" fill="#c4554a"/>
   <circle cx="48" cy="24" r="6" fill="#d2b06a"/>
   <circle cx="68" cy="24" r="6" fill="#7ea37a"/>
-  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm registry, 13 Oct 2026</text>
+  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">@slop-gate/cli 0.1.0 — public npm registry, 13 Oct 2026</text>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
 <text x="24" y="64" fill="#f4efe6">$ node dist/cli.js check react-codeshift</text>
 <text x="24" y="84" fill="#e07a70">slopgate blocked this install.</text>

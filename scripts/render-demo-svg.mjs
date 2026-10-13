@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 // Render docs/demo.svg from docs/demo-check.txt.
-// The transcript is stdout from `node dist/cli.js check` against the public npm registry on 2026-10-13.
+// The transcript is stdout from @slop-gate/cli 0.1.0 (`node dist/cli.js check`)
+// against the public npm registry on 2026-10-13.
 const source = new URL('../docs/demo-check.txt', import.meta.url)
 const target = new URL('../docs/demo.svg', import.meta.url)
 const width = 980
@@ -25,12 +26,12 @@ const body = lines
 const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img">
   <title>slopgate blocks react-codeshift and allows react</title>
-  <desc>Output of node dist/cli.js check react-codeshift and node dist/cli.js check react on 2026-10-13.</desc>
+  <desc>Output of @slop-gate/cli 0.1.0 checking react-codeshift and react on 2026-10-13.</desc>
   <rect width="${width}" height="${height}" rx="14" fill="#1c1915"/>
   <circle cx="28" cy="24" r="6" fill="#c4554a"/>
   <circle cx="48" cy="24" r="6" fill="#d2b06a"/>
   <circle cx="68" cy="24" r="6" fill="#7ea37a"/>
-  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm registry, 13 Oct 2026</text>
+  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">@slop-gate/cli 0.1.0 — public npm registry, 13 Oct 2026</text>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
 ${body}
   </g>

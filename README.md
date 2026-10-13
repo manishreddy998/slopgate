@@ -1,28 +1,56 @@
 # slopgate
 
+[![npm version](https://img.shields.io/npm/v/@slop-gate/cli)](https://www.npmjs.com/package/@slop-gate/cli)
+[![npm downloads](https://img.shields.io/npm/dm/@slop-gate/cli)](https://www.npmjs.com/package/@slop-gate/cli)
+[![CI](https://github.com/manishreddy998/slopgate/actions/workflows/ci.yml/badge.svg)](https://github.com/manishreddy998/slopgate/actions/workflows/ci.yml)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Stop a coding agent before it installs a package that does not exist.
 
 Agents invent dependency names, mistype real ones, and copy `npx` commands out of generated skill files. slopgate checks the name before the install. A missing package is blocked. A newly published name, an unused name, or a lookalike of a popular package is returned with a risk score and a short explanation.
 
-```bash
-npx slopgate init
-```
-
-That is the setup once this package is published. From a checkout:
-
-```bash
-npm install
-npm run build
-node dist/cli.js init
-node dist/cli.js check react-codeshift
-node dist/cli.js check react
-```
-
 ![slopgate blocks react-codeshift and allows react](docs/demo.svg)
 
-Recorded against the public npm registry on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same transcript is in [docs/demo-check.txt](docs/demo-check.txt).
+## Quick start
+
+```bash
+npx @slop-gate/cli init
+```
+
+`init` installs a pre-install hook for Claude Code, Cursor, Codex CLI, and Gemini CLI, and registers an MCP server that exposes `check_package`.
+
+```bash
+npx @slop-gate/cli check react-codeshift
+npx @slop-gate/cli check react
+npx @slop-gate/cli scan
+```
+
+Install the package globally when you want the short `slopgate` command:
+
+```bash
+npm i -g @slop-gate/cli
+slopgate check react
+```
 
 No telemetry. Registry requests stay between you and the registry.
+
+### Blocked install
+
+![slopgate blocks react-codeshift](docs/images/check-react-codeshift.png)
+
+### Allowed install
+
+![slopgate allows react](docs/images/check-react.png)
+
+### Client setup
+
+![slopgate init writes hooks for the supported clients](docs/images/init.png)
+
+### Repository scan
+
+![slopgate scan blocks the bad-skill fixture](docs/images/scan-bad-skill.png)
+
+Recorded from `@slop-gate/cli` 0.1.0 against the public npm registry on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same check transcript is in [docs/demo-check.txt](docs/demo-check.txt).
 
 ## Why `react-codeshift` is blocked
 
@@ -30,7 +58,7 @@ In October 2025, generated skill files started telling agents to run `npx react-
 
 On 14 January 2026, Charlie Eriksen at Aikido published a placeholder so the name could not be claimed later. On 13 October 2026 that placeholder had one version, no weekly downloads, no repository, and a description that says it exists to prevent dependency confusion. slopgate scores it 92/100 and blocks it from those facts. The name is not hard-coded. Background: [Agent skills spreading hallucinated npx commands](https://www.aikido.dev/blog/agent-skills-spreading-hallucinated-npx-commands).
 
-`examples/bad-skill/SKILL.md` is a fixture of that kind. A scan of this repository reports it on purpose. The same scan blocks `npx slopgate init` until this package is published, because that command installs a name the registry does not have yet. CI ignores the README and `examples/` so the fixture does not fail the build.
+`examples/bad-skill/SKILL.md` is a fixture of that kind. A scan of this repository reports it on purpose. CI ignores the README and `examples/` so the fixture does not fail the build.
 
 ## Install hooks
 
@@ -52,8 +80,8 @@ The hook fails open if slopgate crashes, so a bug does not stall the client. Set
 ## Scan a repository
 
 ```bash
-node dist/cli.js scan
-node dist/cli.js scan . --ignore examples --ignore README.md
+npx @slop-gate/cli scan
+npx @slop-gate/cli scan . --ignore examples --ignore README.md
 ```
 
 The scan reads README files, `docs/**/*.md`, `SKILL.md`, `skills/**/*.md`, `CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, `package.json`, `requirements*.txt`, `pyproject.toml`, `Pipfile`, `Cargo.toml`, and `go.mod`. It skips `node_modules`, `.git`, `dist`, `vendor`, virtualenvs, and Cargo `target`.
@@ -75,7 +103,7 @@ jobs:
             README.md
 ```
 
-`strict: true` also fails the job on warnings. The action builds from `github.action_path`, so it works before an npm publish.
+`strict: true` also fails the job on warnings. The action builds slopgate from the action checkout, then scans the repository.
 
 ## Scoring
 
@@ -116,7 +144,7 @@ sloppy-joe goes further on generated typosquats and keeps its config outside the
 ## Commands
 
 ```bash
-slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
+npx @slop-gate/cli init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
 slopgate check react-codeshift
 slopgate check pypi:flask cargo:serde go:github.com/gin-gonic/gin
 slopgate hook --client claude
@@ -128,6 +156,17 @@ slopgate scan [dir] --ignore examples
 
 ## Development
 
-Node 20 or newer. See [CONTRIBUTING.md](CONTRIBUTING.md) for tests and [SECURITY.md](SECURITY.md) for fail-open behavior and project config.
+Node 20 or newer. From a checkout:
+
+```bash
+git clone https://github.com/manishreddy998/slopgate.git
+cd slopgate
+npm install
+npm test
+npm run build
+node dist/cli.js check react
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for tests and [SECURITY.md](SECURITY.md) for fail-open behavior and project config.
 
 MIT. Copyright 2026 Manish.

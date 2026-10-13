@@ -29,7 +29,7 @@ Coverage thresholds are set in `vitest.config.ts`. `npm run test:coverage` enfor
 
 ## Demo
 
-`docs/demo-check.txt` is stdout from `node dist/cli.js check` against the public npm registry. Regenerate the SVG from that file after a real run. Do not edit the transcript by hand.
+`docs/demo-check.txt` is stdout from `@slop-gate/cli` 0.1.0 (`node dist/cli.js check`) against the public npm registry on 13 October 2026. The PNG files in `docs/images/` are the same run. Regenerate the SVG from the transcript after a real run. Do not edit the transcript by hand.
 
 ```bash
 node scripts/render-demo-svg.mjs
@@ -52,5 +52,7 @@ The hook fails open unless `SLOPGATE_FAIL_CLOSED=1`. Project config can be edite
 Do not add telemetry.
 
 ## Publishing
+
+The package on npm is [`@slop-gate/cli`](https://www.npmjs.com/package/@slop-gate/cli). The binary name remains `slopgate`. Install it with `npx @slop-gate/cli` or `npm i -g @slop-gate/cli`.
 
 `prepublishOnly` builds `dist/`. Published files are `dist`, `action.yml`, `README.md`, and `LICENSE`. `publishConfig.access` is `public`. `engines.node` is `>=20`.
