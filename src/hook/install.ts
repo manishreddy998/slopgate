@@ -20,7 +20,7 @@ export interface InstallResult {
   changed: boolean
 }
 
-/** Merge a Claude Code or Codex PreToolUse hook. Existing hooks are left in place. */
+/** Add a Claude Code or Codex hook that runs before a shell command. Other hooks in the file stay. */
 export function installClaudeHook(path: string, command: string): InstallResult {
   return installPreToolHook(path, command)
 }
@@ -54,7 +54,7 @@ export function installGeminiHook(path: string, command: string): InstallResult 
     type: 'command',
     command,
     timeout: 25000,
-    description: 'Block hallucinated, typosquatted, and suspiciously new package installs',
+    description: 'Block fake, look-alike, and very new package installs',
   })
   writeJson(path, settings)
   return { path, changed: true }

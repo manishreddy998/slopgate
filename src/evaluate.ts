@@ -68,7 +68,7 @@ function loadRequirements(
     return {
       packages: [],
       warnings: [
-        warning(file, `Refusing to read ${file} because it is outside the workspace.`),
+        warning(file, `Will not read ${file} because it is outside this project.`),
       ],
     }
   }
@@ -79,7 +79,7 @@ function loadRequirements(
   }
   const size = statSync(file).size
   if (size > REQUIREMENTS_MAX_BYTES) {
-    return { packages: [], warnings: [warning(file, `${file} is too large to scan as a requirements file.`)] }
+    return { packages: [], warnings: [warning(file, `${file} is too big to read as a requirements file.`)] }
   }
   const parsed = parseRequirementsTxt(readFileSync(file, 'utf8'))
   const packages = [...parsed.packages]

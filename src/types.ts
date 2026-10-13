@@ -9,11 +9,11 @@ export type OfflinePolicy = 'allow' | 'warn' | 'block'
 export interface PackageRef {
   ecosystem: Ecosystem
   name: string
-  /** Specifier as written, including extras and version operators. */
+  /** The name as typed, including extra features and version marks. */
   raw: string
   version?: string
   ignoreScripts: boolean
-  /** Git URL, path, or a non-default registry. Missing on the public index is not proof of a hallucination. */
+  /** A git URL, a folder path, or a package site that is not the public one. A miss there does not prove the name is fake. */
   customRegistry: boolean
 }
 
@@ -26,11 +26,11 @@ export interface ParsedCommand {
 export interface PackageFact {
   ecosystem: Ecosystem
   name: string
-  /** True when the registry has it, false when the registry confirmed a miss, null when the registry could not be reached. */
+  /** True if the package site has it. False if the site said it is missing. Null if the site did not answer. */
   exists: boolean | null
   createdAt?: string
   ageDays?: number
-  /** Null means the downloads endpoint was asked and had no number. Undefined means we did not ask. */
+  /** Null means we asked for a download count and got no number. Undefined means we did not ask. */
   weeklyDownloads?: number | null
   recentDownloads?: number | null
   totalDownloads?: number | null
@@ -49,13 +49,13 @@ export interface PackageFact {
 export interface Suggestion {
   name: string
   reason: string
-  /** Higher is a closer match. */
+  /** Higher means a closer match. */
   score: number
 }
 
 export interface Reason {
   code: string
-  /** Contribution to the 0–100 risk score. Zero means the line is explanatory only. */
+  /** Points added to the 0–100 score. Zero means the line is only an explanation. */
   weight: number
   message: string
 }

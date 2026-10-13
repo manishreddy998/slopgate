@@ -46,7 +46,7 @@ export async function handleMcpMessage(raw: unknown, ctx: LookupContext): Promis
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: 'slopgate', version },
         instructions:
-          'Call check_package before installing a dependency. A block means the name is missing, brand new, or a likely typo of a popular package.',
+          'Call check_package before installing a package. A block means the name is missing, brand new, or very close to a well-known package.',
       })
     }
     case 'notifications/initialized':
@@ -107,14 +107,14 @@ function checkPackageTool(): Record<string, unknown> {
   return {
     name: 'check_package',
     description:
-      'Check one package name before installing it. Returns a risk score, a verdict of allow, warn, or block, and the likely real package when the name looks like a typo.',
+      'Check one package name before installing it. Returns a score from 0 to 100, a result of allow, warn, or block, and the real package if this name looks like a typo.',
     inputSchema: {
       type: 'object',
       properties: {
         ecosystem: {
           type: 'string',
           enum: [...ECOSYSTEMS],
-          description: 'Registry. Defaults to npm.',
+          description: 'Where the package lives: npm, pypi, cargo, or go. Defaults to npm.',
         },
         name: {
           type: 'string',
@@ -134,7 +134,9 @@ async function callTool(params: Record<string, unknown>, ctx: LookupContext): Pr
   const packageName = typeof args.name === 'string' ? args.name.trim() : ''
   if (!packageName) return toolError('check_package needs a name')
   const ecosystemRaw = typeof args.ecosystem === 'string' && args.ecosystem.length > 0 ? args.ecosystem : 'npm'
-  if (!(ECOSYSTEMS as readonly string[]).includes(ecosystemRaw)) return toolError(`unknown ecosystem ${ecosystemRaw}`)
+  if (!(ECOSYSTEMS as readonly string[]).includes(ecosystemRaw)) {
+    return toolError(`unknown package source ${ecosystemRaw}. Use npm, pypi, cargo, or go.`)
+  }
   const ecosystem = ecosystemRaw as Ecosystem
   const [scored] = await scoreRefs(
     [{ ecosystem, name: packageName, raw: packageName, ignoreScripts: false, customRegistry: false }],
@@ -200,7 +202,7 @@ function takeContentLength(buffer: Buffer, start: number): { body: string; frami
   const match = /content-length:\s*(\d+)/i.exec(buffer.subarray(start, sep).toString('utf8'))
   const length = match?.[1] ? Number(match[1]) : Number.NaN
   if (!Number.isInteger(length) || length < 0 || length > 1_000_000) {
-    throw new Error('MCP Content-Length is invalid')
+    throw new Error('The Content-Length header is not a valid number')
   }
   const bodyStart = sep + sepLength
   if (buffer.length < bodyStart + length) return null

@@ -28,7 +28,7 @@ import { ECOSYSTEMS, type Ecosystem, type PackageRef } from './types.js'
 import { version } from './version.js'
 
 const HELP = `slopgate ${version}
-Stop AI coding agents from installing hallucinated packages.
+Stop AI coding tools from installing fake or unsafe package names.
 
 Usage
   slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
@@ -41,7 +41,7 @@ Usage
   slopgate check react-codeshift
   slopgate scan . --ignore README.md
 
-No telemetry. Registry requests stay between you and the registry.
+slopgate does not send usage data. It only talks to the public package sites.
 `
 
 const BOOLEAN_FLAGS = new Set(['help', 'version', 'global', 'json', 'strict', 'no-install', 'no-mcp'])
@@ -114,7 +114,7 @@ function initCommand(
   if (!global && args.flags.get('no-install') !== true) {
     const installed = ensureDevDependency(cwd)
     if (installed === 'failed') {
-      stderr('slopgate: could not add the local dev dependency. The hook will call this copy of the CLI.\n')
+      stderr('slopgate: could not add slopgate as a dev dependency. The hook will call this copy of the program.\n')
     }
   }
   for (const client of selectedClients(args.flags.get('only'))) {
@@ -148,7 +148,7 @@ const CLIENTS: readonly HookClient[] = ['claude', 'cursor', 'codex', 'gemini']
 
 function selectedClients(only: string | boolean | undefined): HookClient[] {
   if (only === undefined) return [...CLIENTS]
-  if (typeof only !== 'string') throw new Error('init --only needs a comma-separated client list')
+  if (typeof only !== 'string') throw new Error('init --only needs a list of clients, separated by commas')
   const clients = only
     .split(',')
     .map((item) => item.trim())
@@ -267,7 +267,7 @@ function specToRef(token: string, fallback: Ecosystem): PackageRef {
 function parseEcosystem(value: string | boolean | undefined): Ecosystem {
   if (typeof value !== 'string') return 'npm'
   if ((ECOSYSTEMS as readonly string[]).includes(value)) return value as Ecosystem
-  throw new Error(`unknown ecosystem ${value}`)
+  throw new Error(`unknown package source ${value}. Use npm, pypi, cargo, or go.`)
 }
 
 function ensureDevDependency(cwd: string): 'installed' | 'skipped' | 'failed' {

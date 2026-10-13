@@ -8,7 +8,7 @@ export function explainResults(results: readonly RiskResult[]): string {
   const lines = [
     blocked
       ? 'slopgate blocked this install.'
-      : 'slopgate warning. The install can continue, but read this before trusting it.',
+      : 'slopgate warning. The install can continue. Read this first.',
     '',
   ]
   for (const result of flagged) {
@@ -26,7 +26,7 @@ export function explainResults(results: readonly RiskResult[]): string {
     lines.push('')
   }
   lines.push(
-    'If one of those is what you meant, install that instead. Add a private name to allow or trustedScopes in slopgate.config.json when the miss is expected.',
+    'If one of these is the package you wanted, install that. To allow a private name, add it under allow or trustedScopes in slopgate.config.json.',
   )
   return `${lines.join('\n').trim()}\n`
 }
@@ -35,7 +35,7 @@ export function summarize(results: readonly RiskResult[]): { verdict: Verdict; t
   return { verdict: worstVerdict(results), text: explainResults(results) }
 }
 
-/** Human output for `slopgate check`. Allows stay one line; blocks and warnings include the agent text. */
+/** Text for `slopgate check`. Safe packages stay on one line. Blocks and warnings include the full note. */
 export function formatReport(results: readonly RiskResult[]): string {
   if (results.length === 0) return 'No packages to check.\n'
   if (results.every((result) => result.verdict === 'allow')) {

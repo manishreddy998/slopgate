@@ -31,7 +31,7 @@ export function analyzeName(ecosystem: Ecosystem, name: string, maxDistance: num
     if (glyph === entry.homoglyph && key !== entry.key && key.length >= 4) {
       strong.push({
         name: entry.name,
-        reason: `uses lookalike characters for ${entry.name}`,
+        reason: `uses look-alike letters for ${entry.name}`,
         score: 96,
         rank: entry.rank,
       })
@@ -40,7 +40,7 @@ export function analyzeName(ecosystem: Ecosystem, name: string, maxDistance: num
     if (stripped === entry.stripped && key !== entry.key && stripped.length >= 5) {
       strong.push({
         name: entry.name,
-        reason: `same name as ${entry.name} aside from - _ . separators`,
+        reason: `same name as ${entry.name} if you ignore - _ and .`,
         score: 90,
         rank: entry.rank,
       })
@@ -49,7 +49,7 @@ export function analyzeName(ecosystem: Ecosystem, name: string, maxDistance: num
     if (collapsed === entry.collapsed && key !== entry.key && collapsed.length >= 4 && key.length >= 5) {
       strong.push({
         name: entry.name,
-        reason: `repeated letters collapse to ${entry.name}`,
+        reason: `repeated letters match ${entry.name}`,
         score: 88,
         rank: entry.rank,
       })
@@ -60,7 +60,7 @@ export function analyzeName(ecosystem: Ecosystem, name: string, maxDistance: num
       if (segmentDistance === 1) {
         strong.push({
           name: entry.name,
-          reason: `module path is one edit from ${entry.name}`,
+          reason: `the last part of the path is one letter off ${entry.name}`,
           score: 94,
           rank: entry.rank,
         })
@@ -91,7 +91,7 @@ function editMatch(key: string, entry: PopularEntry, maxDistance: number): { sco
   if (key.length < 4 || entry.key.length < 4) return null
   const distance = damerau(key, entry.key, maxDistance)
   if (distance === 1) {
-    return { score: 100 - entry.rank / 1000, reason: `one edit from ${entry.name}` }
+    return { score: 100 - entry.rank / 1000, reason: `one letter change from ${entry.name}` }
   }
   if (
     distance === 2 &&
@@ -101,7 +101,7 @@ function editMatch(key: string, entry: PopularEntry, maxDistance: number): { sco
     key[0] === entry.key[0] &&
     Math.abs(key.length - entry.key.length) <= 1
   ) {
-    return { score: 70 - entry.rank / 1000, reason: `two edits from ${entry.name}` }
+    return { score: 70 - entry.rank / 1000, reason: `two letter changes from ${entry.name}` }
   }
   return null
 }
@@ -119,10 +119,10 @@ function weakScore(key: string, entry: PopularEntry): number {
 
 function resemblanceReason(key: string, entry: PopularEntry): string {
   const prefix = sharedPrefixLength(key, entry.key)
-  if (prefix >= 8) return `shares a long prefix with ${entry.name}`
+  if (prefix >= 8) return `starts with the same letters as ${entry.name}`
   const token = key.split(/[^a-z0-9]+/i).find((part) => part.length >= 6 && entry.key.includes(part))
-  if (token) return `contains "${token}", the distinctive part of ${entry.name}`
-  return `resembles ${entry.name}`
+  if (token) return `contains "${token}", which is also in ${entry.name}`
+  return `looks like ${entry.name}`
 }
 
 function byScore(left: Suggestion & { rank: number }, right: Suggestion & { rank: number }): number {

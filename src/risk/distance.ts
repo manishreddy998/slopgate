@@ -1,4 +1,4 @@
-/** Optimal string alignment: adjacent transpositions count as one edit. Distances above `max` return `max + 1`. */
+/** Count letter changes. Swapping two side-by-side letters counts as one change. If the distance is above max, return max + 1. */
 export function damerau(left: string, right: string, max = 2): number {
   if (left === right) return 0
   const aLen = left.length

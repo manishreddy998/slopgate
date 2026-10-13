@@ -20,7 +20,7 @@ export function mcpConfigPath(client: HookClient, global: boolean, projectDir: s
   return join(root, '.gemini', 'settings.json')
 }
 
-/** Point one agent at `slopgate mcp`. Existing servers and other settings stay put. */
+/** Point one tool at `slopgate mcp`. Other servers and settings in the file stay. */
 export function installMcpServer(
   client: HookClient,
   path: string,

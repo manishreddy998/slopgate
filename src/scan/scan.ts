@@ -39,7 +39,7 @@ export async function scanProject(
 ): Promise<ScanReport> {
   const abs = resolve(root)
   const info = statSync(abs)
-  if (!info.isDirectory()) throw new Error(`${root} is not a directory`)
+  if (!info.isDirectory()) throw new Error(`${root} is not a folder`)
   const ignore = [...options.ctx.config.ignorePaths, ...(options.ignore ?? [])]
   const files = collectFiles(abs, ignore)
   const grouped = new Map<string, { ref: PackageRef; files: string[] }>()

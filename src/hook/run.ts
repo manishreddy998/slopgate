@@ -44,8 +44,8 @@ export async function runHook(options: HookRunOptions): Promise<HookRunResult> {
         input = parsed as Record<string, unknown>
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        if (failClosed) return { stdout: '', stderr: `slopgate: could not parse hook input (${message})\n`, exitCode: 2 }
-        return { stdout: '', stderr: `slopgate: ignoring unreadable hook input (${message})\n`, exitCode: 0 }
+        if (failClosed) return { stdout: '', stderr: `slopgate: could not read the hook input (${message})\n`, exitCode: 2 }
+        return { stdout: '', stderr: `slopgate: skipped unreadable hook input (${message})\n`, exitCode: 0 }
       }
       client = detectClient(input, parseClient(options.client))
       cwd = cwdFromInput(input, cwd)

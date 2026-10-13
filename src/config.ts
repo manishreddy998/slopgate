@@ -50,7 +50,7 @@ export function loadConfig(cwd: string, env: NodeJS.ProcessEnv = process.env): S
   return clampConfig(config)
 }
 
-/** Nearest `slopgate.config.json`, otherwise the nearest package.json `slopgate` key. */
+/** The nearest slopgate.config.json. If there is none, the nearest package.json "slopgate" key. */
 export function readProjectConfig(cwd: string): Partial<SlopgateConfig> | null {
   let dir = resolve(cwd)
   for (;;) {
@@ -110,7 +110,7 @@ export function normalizeConfig(value: unknown, path: string): Partial<SlopgateC
   assignStringList(out, 'ignorePaths', obj.ignorePaths, path)
   if (obj.ignoreInstallScripts !== undefined) {
     if (typeof obj.ignoreInstallScripts !== 'boolean') {
-      throw new ConfigError(`${path} ignoreInstallScripts must be a boolean`)
+      throw new ConfigError(`${path} ignoreInstallScripts must be true or false`)
     }
     out.ignoreInstallScripts = obj.ignoreInstallScripts
   }
@@ -129,7 +129,7 @@ export function normalizeConfig(value: unknown, path: string): Partial<SlopgateC
       const url = (obj.registries as Record<string, unknown>)[key]
       if (url === undefined) continue
       if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
-        throw new ConfigError(`${path} registries.${key} must be an http(s) URL`)
+        throw new ConfigError(`${path} registries.${key} must be an http or https URL`)
       }
       registries[key] = url
     }
@@ -159,7 +159,7 @@ function assignStringList(
 ): void {
   if (value === undefined) return
   if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
-    throw new ConfigError(`${path} ${key} must be an array of strings`)
+    throw new ConfigError(`${path} ${key} must be a list of strings`)
   }
   out[key] = value
 }

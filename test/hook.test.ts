@@ -80,7 +80,7 @@ describe('Claude Code hook', () => {
   it('fails open on broken input unless fail-closed is set', async () => {
     const open = await runHook({ stdin: '{', client: 'claude', ctx: { config: DEFAULT_CONFIG, cache: new MemoryCache() } })
     expect(open.exitCode).toBe(0)
-    expect(open.stderr).toContain('ignoring unreadable hook input')
+    expect(open.stderr).toContain('skipped unreadable hook input')
 
     const closed = await runHook({
       stdin: '{',
