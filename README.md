@@ -7,8 +7,9 @@
 
 Stop a coding agent before it installs a package that does not exist.
 
-Agents invent dependency names, mistype real ones, and copy `npx` commands out of generated skill files. slopgate checks the name before the install. A missing package is blocked. A newly published name, an unused name, or a lookalike of a popular package is returned with a risk score and a short explanation.
+Agents invent dependency names, mistype real ones, and copy `pip install` lines out of generated scripts and notebooks. slopgate checks the name before the install. A missing package is blocked. A newly published name, an unused name, or a lookalike of a popular package is returned with a risk score and a short explanation.
 
+![slopgate blocks the panadas lookalike](docs/images/check-pypi-panadas.png)
 
 ## Quick start
 
@@ -19,8 +20,8 @@ npx @slop-gate/cli init
 `init` installs a pre-install hook for Claude Code, Cursor, Codex CLI, and Gemini CLI, and registers an MCP server that exposes `check_package`.
 
 ```bash
-npx @slop-gate/cli check react-codeshift
-npx @slop-gate/cli check react
+npx @slop-gate/cli check pypi:panadas
+npx @slop-gate/cli check pypi:pandas
 npx @slop-gate/cli scan
 ```
 
@@ -28,50 +29,38 @@ Install the package globally when you want the short `slopgate` command:
 
 ```bash
 npm i -g @slop-gate/cli
-slopgate check react
+slopgate check pypi:pandas
 ```
 
 No telemetry. Registry requests stay between you and the registry.
 
-### Blocked install
+### Lookalike package
 
-![slopgate blocks react-codeshift](docs/images/check-react-codeshift.png)
+![slopgate blocks the panadas lookalike](docs/images/check-pypi-panadas.png)
 
-### Allowed install
+### Missing package
 
-![slopgate allows react](docs/images/check-react.png)
+![slopgate blocks a missing PyPI package](docs/images/check-pypi-missing.png)
+
+### Real package
+
+![slopgate allows pandas](docs/images/check-pypi-pandas.png)
 
 ### Client setup
 
 ![slopgate init writes hooks for the supported clients](docs/images/init.png)
 
-### Repository scan
+Recorded from `@slop-gate/cli` 0.1.2 against the public PyPI registry on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects.
 
-![slopgate scan blocks the bad-skill fixture](docs/images/scan-bad-skill.png)
+## Why `panadas` is blocked
 
-### Python packages
+Data work runs on a small set of Python libraries: pandas, numpy, requests, sqlalchemy, pyspark. A one-letter typo of one of these names is easy to miss in a generated script, and an agent will run `pip install` on it without a second look. Whoever owns that name can run code on a machine that often holds database credentials and cloud keys.
 
-slopgate checks PyPI names before `pip`, `uv`, or `poetry` installs them. `panadas` is a one-letter lookalike of `pandas` with one release, no source link, and no license:
+On 13 October 2026, `panadas` on PyPI had one release, no link to source code, no license, and a name one letter away from `pandas`. slopgate scores it 92/100 and blocks it from those facts, and suggests `pandas` instead. The name is not hard-coded.
 
-![slopgate blocks the panadas lookalike](docs/images/check-pypi-panadas.png)
+A name that is not on PyPI at all, such as `pandas-sql-helper`, is blocked with a score of 100. That is the case slopsquatting attacks wait for: an agent makes up a name, and someone registers it later.
 
-A name that is not on PyPI at all is blocked:
-
-![slopgate blocks a missing PyPI package](docs/images/check-pypi-missing.png)
-
-A real package passes:
-
-![slopgate allows pandas](docs/images/check-pypi-pandas.png)
-
-Recorded from `@slop-gate/cli` 0.1.2 against the public npm and PyPI registries on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same check transcript is in [docs/demo-check.txt](docs/demo-check.txt).
-
-## Why `react-codeshift` is blocked
-
-In October 2025, generated skill files started telling agents to run `npx react-codeshift`. The name is a blend of [jscodeshift](https://www.npmjs.com/package/jscodeshift) and [react-codemod](https://www.npmjs.com/package/react-codemod). It was not a package. The command spread with those files, including through `bunx`, `pnpm dlx`, and `yarn dlx`.
-
-On 14 January 2026, Charlie Eriksen at Aikido published a placeholder so the name could not be claimed later. On 13 October 2026 that placeholder had one version, no weekly downloads, no repository, and a description that says it exists to prevent dependency confusion. slopgate scores it 92/100 and blocks it from those facts. The name is not hard-coded. Background: [Agent skills spreading hallucinated npx commands](https://www.aikido.dev/blog/agent-skills-spreading-hallucinated-npx-commands).
-
-`examples/bad-skill/SKILL.md` is a fixture of that kind. A scan of this repository reports it on purpose. CI ignores the README and `examples/` so the fixture does not fail the build.
+`examples/bad-skill/SKILL.md` is a fixture of a generated file with a made-up install command. A scan of this repository reports it on purpose. CI ignores the README and `examples/` so the fixture does not fail the build.
 
 ## Install hooks
 
@@ -132,7 +121,7 @@ A confirmed miss on the public registry is a block. Other signals add up to a sc
 | npm `preinstall`, `install`, or `postinstall` | Code runs at install time |
 | Edit distance, homoglyphs, or separator changes | Close to a popular package |
 
-Suggestions name the likely intended package. A weak token overlap, such as sharing `codeshift`, is explained and does not raise the score by itself, so `react-dom` is not flagged for containing `react`.
+Suggestions name the likely intended package. A weak token overlap, such as sharing `codeshift`, is explained and does not raise the score by itself, so `pandas-stubs` is not flagged for containing `pandas`.
 
 Popular packages score 0 even when they ship install scripts. `esbuild` is allowed. A git URL, a path, or a private registry is a warning when the public index misses, not a block. Names on `allow` or `trustedScopes` are allowed even if the public registry has never seen them.
 
@@ -142,7 +131,7 @@ Copy [slopgate.config.example.json](slopgate.config.example.json) to `slopgate.c
 
 ## Scope
 
-slopgate does not audit the source of an already-popular package, and it does not query a vulnerability database. `npm install react` is allowed because react is a real, widely installed package. Socket, Snyk, and Aikido cover malware and known vulnerabilities after the name is legitimate.
+slopgate does not audit the source of an already-popular package, and it does not query a vulnerability database. `pip install pandas` is allowed because pandas is a real, widely installed package. Socket, Snyk, and Aikido cover malware and known vulnerabilities after the name is legitimate.
 
 | | slopgate | sloppy-joe | slopcop | Socket, Snyk, Aikido |
 | --- | --- | --- | --- | --- |
@@ -158,7 +147,7 @@ sloppy-joe goes further on generated typosquats and keeps its config outside the
 
 ```bash
 npx @slop-gate/cli init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
-slopgate check react-codeshift
+slopgate check pypi:panadas
 slopgate check pypi:flask cargo:serde go:github.com/gin-gonic/gin
 slopgate hook --client claude
 slopgate mcp
@@ -177,7 +166,7 @@ cd slopgate
 npm install
 npm test
 npm run build
-node dist/cli.js check react
+node dist/cli.js check pypi:pandas
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for tests and [SECURITY.md](SECURITY.md) for fail-open behavior and project config.
