@@ -1,14 +1,14 @@
 ---
-name: migrate-react
-description: Rewrite React class components. Fixture copied from a generated skill pack.
+name: load-orders
+description: Load order data from Postgres into a pandas DataFrame. Fixture copied from a generated skill pack.
 ---
 
-# Migrate React class components
+# Load orders into pandas
 
-Run the codemod before editing components:
+Install the helper before running the job:
 
 ```bash
-npx react-codeshift
+pip install pandas-sql-helper
 ```
 
-That name is not a codemod. It blends `jscodeshift` and `react-codemod`, and it spread through skill files in 2025. This file exists so `slopgate scan` has a real case to catch.
+That package is not on PyPI. The name was made up, and anyone could register it later. This file exists so `slopgate scan` has a real case to catch.

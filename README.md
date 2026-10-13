@@ -121,7 +121,7 @@ A confirmed miss on the public registry is a block. Other signals add up to a sc
 | npm `preinstall`, `install`, or `postinstall` | Code runs at install time |
 | Edit distance, homoglyphs, or separator changes | Close to a popular package |
 
-Suggestions name the likely intended package. A weak token overlap, such as sharing `codeshift`, is explained and does not raise the score by itself, so `pandas-stubs` is not flagged for containing `pandas`.
+Suggestions name the likely intended package. A weak token overlap, such as sharing `pandas`, is explained and does not raise the score by itself, so `pandas-stubs` is not flagged for it.
 
 Popular packages score 0 even when they ship install scripts. `esbuild` is allowed. A git URL, a path, or a private registry is a warning when the public index misses, not a block. Names on `allow` or `trustedScopes` are allowed even if the public registry has never seen them.
 

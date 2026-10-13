@@ -11,10 +11,10 @@ npm install
 npm test
 npm run typecheck
 npm run build
-node dist/cli.js check react
+node dist/cli.js check pypi:pandas
 ```
 
-`npm test` does not contact the registries. Hook, scoring, and scan tests use fixtures, including the public shape of `react-codeshift` as of 13 October 2026.
+`npm test` does not contact the registries. Hook, scoring, and scan tests use fixtures, built from the public shape of real registry entries as of 13 October 2026.
 
 Live registry check:
 
@@ -23,21 +23,17 @@ npm run build
 SLOPGATE_LIVE=1 npx vitest run test/live.test.ts
 ```
 
-That test denies `npm install react-codeshift` and allows `npm install react`, both in-process and through `dist/cli.js`.
+That test checks a blocked install and an allowed install against the live registry, both in-process and through `dist/cli.js`.
 
 Coverage thresholds are set in `vitest.config.ts`. `npm run test:coverage` enforces them.
 
-## Demo
+## Screenshots
 
-`docs/demo-check.txt` is stdout from `@slop-gate/cli` 0.1.0 (`node dist/cli.js check`) against the public npm registry on 13 October 2026. The PNG files in `docs/images/` are the same run. Regenerate the SVG from the transcript after a real run. Do not edit the transcript by hand.
-
-```bash
-node scripts/render-demo-svg.mjs
-```
+The PNG files in `docs/images/` are real terminal captures of `@slop-gate/cli` 0.1.2 against the public PyPI registry on 13 October 2026. Replace them with new captures after a release. Do not edit them by hand.
 
 ## Scanning this repository
 
-The README and `examples/bad-skill/SKILL.md` mention `npx react-codeshift` on purpose. An unfiltered scan blocks that fixture.
+`examples/bad-skill/SKILL.md` tells the reader to run `pip install pandas-sql-helper`, a package that does not exist, on purpose. An unfiltered scan blocks that fixture.
 
 ```bash
 node dist/cli.js scan --ignore README.md --ignore examples --ignore test --ignore CONTRIBUTING.md
