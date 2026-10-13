@@ -1,0 +1,15 @@
+$ node dist/cli.js check react-codeshift
+slopgate blocked this install.
+
+react-codeshift (npm) — risk 92/100 — block
+  • No downloads in the last week. The floor is 100.
+  • Only one version has ever been published.
+  • No source repository is linked.
+  • The publisher describes it as a placeholder ("🚫 Placeholder to prevent dependency confusion."), not a library to install.
+  Closest real packages:
+  • react-codemod — shares a long prefix with react-codemod
+  • jscodeshift — contains "codeshift", the distinctive part of jscodeshift
+
+If one of those is what you meant, install that instead. Add a private name to allow or trustedScopes in slopgate.config.json when the miss is expected.
+$ node dist/cli.js check react
+react (npm) — risk 0/100 — allow

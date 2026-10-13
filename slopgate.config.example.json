@@ -1,0 +1,12 @@
+{
+  "blockScore": 60,
+  "warnScore": 25,
+  "maxAgeDays": 30,
+  "minWeeklyDownloads": 100,
+  "typoDistance": 2,
+  "allow": ["@my-company/*"],
+  "trustedScopes": ["@my-company"],
+  "offline": "warn",
+  "ignoreInstallScripts": false,
+  "ignorePaths": ["examples", "test"]
+}
