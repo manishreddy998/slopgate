@@ -21,6 +21,7 @@ import {
 import { runHook } from './hook/run.js'
 import { installMcpServer, mcpConfigPath, mcpLaunch } from './mcp/install.js'
 import { serveMcp } from './mcp/server.js'
+import { formatScan, scanProject } from './scan/scan.js'
 import type { LookupContext } from './registry/lookup.js'
 import { worstVerdict } from './risk/score.js'
 import { ECOSYSTEMS, type Ecosystem, type PackageRef } from './types.js'
@@ -33,11 +34,12 @@ Usage
   slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
   slopgate check <package...> [--ecosystem npm|pypi|cargo|go] [--json] [--strict]
   slopgate hook [--client claude|cursor|codex|gemini|auto] [--command <shell>]
+  slopgate scan [dir] [--ignore <glob>] [--json] [--strict]
   slopgate mcp
 
   npx slopgate init
   slopgate check react-codeshift
-  slopgate hook --client cursor --command "npm install react"
+  slopgate scan . --ignore README.md
 
 No telemetry. Registry requests stay between you and the registry.
 `
@@ -85,6 +87,8 @@ export async function main(argv: string[], io: CliIo = {}): Promise<number> {
         return await hookCommandRun(args, cwd, env, io, stdout, stderr)
       case 'mcp':
         return await mcpCommandRun(cwd, env, io, stdout)
+      case 'scan':
+        return await scanCommand(args, cwd, env, io, stdout)
       default:
         stderr(`slopgate: unknown command ${args.command}\n\n${HELP}`)
         return 2
@@ -181,6 +185,27 @@ async function checkCommand(
   return 0
 }
 
+async function scanCommand(
+  args: ParsedArgs,
+  cwd: string,
+  env: NodeJS.ProcessEnv,
+  io: CliIo,
+  stdout: (chunk: string) => void,
+): Promise<number> {
+  const root = args.positionals[0] ? resolve(cwd, args.positionals[0]) : cwd
+  const ignoreFlag = args.flags.get('ignore')
+  const ignore = typeof ignoreFlag === 'string' ? ignoreFlag.split('\n').filter((item) => item.length > 0) : []
+  const report = await scanProject(root, { ignore, ctx: lookupContext(cwd, env, io) })
+  if (args.flags.get('json') === true) {
+    stdout(`${JSON.stringify(report, null, 2)}\n`)
+  } else {
+    stdout(formatScan(report))
+  }
+  if (report.verdict === 'block') return 1
+  if (args.flags.get('strict') === true && report.verdict === 'warn') return 1
+  return 0
+}
+
 async function mcpCommandRun(
   cwd: string,
   env: NodeJS.ProcessEnv,
@@ -262,6 +287,15 @@ function ensureDevDependency(cwd: string): 'installed' | 'skipped' | 'failed' {
   return result.status === 0 ? 'installed' : 'failed'
 }
 
+function storeFlag(flags: Map<string, string | boolean>, key: string, value: string): void {
+  if (key !== 'ignore') {
+    flags.set(key, value)
+    return
+  }
+  const previous = flags.get(key)
+  flags.set(key, typeof previous === 'string' ? `${previous}\n${value}` : value)
+}
+
 function parseArgv(argv: string[]): ParsedArgs {
   const positionals: string[] = []
   const flags = new Map<string, string | boolean>()
@@ -284,12 +318,12 @@ function parseArgv(argv: string[]): ParsedArgs {
       const body = token.slice(2)
       const eq = body.indexOf('=')
       if (eq !== -1) {
-        flags.set(body.slice(0, eq), body.slice(eq + 1))
+        storeFlag(flags, body.slice(0, eq), body.slice(eq + 1))
         continue
       }
       const next = argv[index + 1]
       if (next !== undefined && !next.startsWith('-') && !BOOLEAN_FLAGS.has(body)) {
-        flags.set(body, next)
+        storeFlag(flags, body, next)
         index++
         continue
       }
