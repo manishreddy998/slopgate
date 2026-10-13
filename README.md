@@ -9,7 +9,6 @@ Stop a coding agent before it installs a package that does not exist.
 
 Agents invent dependency names, mistype real ones, and copy `npx` commands out of generated skill files. slopgate checks the name before the install. A missing package is blocked. A newly published name, an unused name, or a lookalike of a popular package is returned with a risk score and a short explanation.
 
-![slopgate blocks react-codeshift and allows react](docs/demo.svg)
 
 ## Quick start
 
@@ -50,7 +49,7 @@ No telemetry. Registry requests stay between you and the registry.
 
 ![slopgate scan blocks the bad-skill fixture](docs/images/scan-bad-skill.png)
 
-Recorded from `@slop-gate/cli` 0.1.0 against the public npm registry on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same check transcript is in [docs/demo-check.txt](docs/demo-check.txt).
+Recorded from `@slop-gate/cli` 0.1.2 against the public npm registry on 13 October 2026. `check` exits 1 on a block. The Claude Code hook prints `permissionDecision: deny` and exits 0, which is the deny signal that client expects. `npm install react` is allowed. The same check transcript is in [docs/demo-check.txt](docs/demo-check.txt).
 
 ## Why `react-codeshift` is blocked
 
