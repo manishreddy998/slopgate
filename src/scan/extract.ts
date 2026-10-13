@@ -73,9 +73,11 @@ function refsFromProse(text: string): PackageRef[] {
   })
   const refs: PackageRef[] = []
   for (const chunk of [...fences, ...inlines, ...plain.split(/\r?\n/)]) {
-    const command = clipToCommands(chunk)
-    if (!command) continue
-    refs.push(...parseShell(command).packages)
+    for (const line of chunk.split(/\r?\n/)) {
+      const command = clipToCommands(line)
+      if (!command) continue
+      refs.push(...parseShell(command).packages)
+    }
   }
   return refs
 }

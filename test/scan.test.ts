@@ -53,6 +53,12 @@ describe('extract package names', () => {
       'pypi:flask',
     ])
 
+    const fenced = extractRefs(
+      'README.md',
+      '```bash\nnpm install react\nnpm run build\nnode dist/cli.js init\nnpx slopgate init\n```\n',
+    )
+    expect(fenced.refs.map((ref) => ref.name).sort()).toEqual(['react', 'slopgate'])
+
     const pkg = extractRefs(
       'package.json',
       JSON.stringify({
