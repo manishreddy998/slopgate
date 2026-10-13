@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync, realpathSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { isDirectEntry } from './entry.js'
 import { DiskCache, defaultCachePath } from './cache.js'
 import { loadConfig } from './config.js'
 import { formatReport } from './explain.js'
@@ -347,19 +348,7 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString('utf8')
 }
 
-const invokedDirectly = launchedAsCli()
-
-/** True when this file is the process entry, including an npm bin symlink. */
-function launchedAsCli(): boolean {
-  const entry = process.argv[1]
-  if (entry === undefined) return false
-  const self = fileURLToPath(import.meta.url)
-  try {
-    return realpathSync(entry) === realpathSync(self)
-  } catch {
-    return resolve(entry) === self
-  }
-}
+const invokedDirectly = isDirectEntry(process.argv[1], fileURLToPath(import.meta.url))
 
 if (invokedDirectly) {
   main(process.argv.slice(2))
