@@ -7,6 +7,8 @@ import { evaluateCommand } from '../src/evaluate.js'
 import { damerau } from '../src/risk/distance.js'
 import { scorePackage } from '../src/risk/score.js'
 import { analyzeName } from '../src/risk/typo.js'
+import { stripPictographs } from '../src/text.js'
+import { formatReport } from '../src/explain.js'
 import type { PackageFact } from '../src/types.js'
 
 function fact(partial: Partial<PackageFact> & Pick<PackageFact, 'name' | 'exists'>): PackageFact {
@@ -103,6 +105,35 @@ describe('scorePackage', () => {
     expect(result.suggestions.map((item) => item.name)).toEqual(
       expect.arrayContaining(['jscodeshift', 'react-codemod']),
     )
+  })
+
+  it('strips emoji from quoted registry text', () => {
+    expect(stripPictographs('🚫 Placeholder  to prevent dependency confusion.')).toBe(
+      'Placeholder to prevent dependency confusion.',
+    )
+    expect(stripPictographs('a 👍🏽 b 🇺🇸 c 👨‍👩‍👧‍👦 d #️⃣ e (ok).')).toBe('a b c d # e (ok).')
+    expect(stripPictographs('✓ ✗ ☆ ★ ⚠')).toBe('')
+    const result = scorePackage({
+      ecosystem: 'npm',
+      name: 'react-codeshift',
+      config: DEFAULT_CONFIG,
+      fact: fact({
+        name: 'react-codeshift',
+        exists: true,
+        weeklyDownloads: 0,
+        versionCount: 1,
+        repository: null,
+        description: '🚫 Placeholder to prevent dependency confusion.',
+        license: 'ISC',
+        ageDays: 271,
+        installScripts: ['postinstall🚨'],
+      }),
+    })
+    const report = formatReport([result])
+    expect(report).toContain('("Placeholder to prevent dependency confusion.")')
+    expect(report).toContain('postinstall')
+    expect(report).not.toMatch(/\p{Extended_Pictographic}/u)
+    expect(result.reasons.find((item) => item.code === 'install-script')?.message).toContain('(postinstall)')
   })
 
   it('blocks a brand-new package with an install script and honors the allow list', () => {

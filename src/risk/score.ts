@@ -1,4 +1,5 @@
 import type { Ecosystem, PackageFact, Reason, RiskResult, SlopgateConfig, Suggestion, Verdict } from '../types.js'
+import { stripPictographs } from '../text.js'
 import { analyzeName, type NameAnalysis } from './typo.js'
 import { compareKey } from './popular.js'
 
@@ -117,20 +118,24 @@ export function scorePackage(input: {
     !input.ignoreScripts &&
     !input.config.ignoreInstallScripts
   ) {
+    const scripts = input.fact.installScripts.map((script) => stripPictographs(script)).filter((script) => script.length > 0)
+    const listed = scripts.join(', ')
     reasons.push(
       reason(
         'install-script',
         18,
-        `It has an install script (${input.fact.installScripts.join(', ')}). That script runs code as soon as you install the package.`,
+        `It has an install script${listed.length > 0 ? ` (${listed})` : ''}. That script runs code as soon as you install the package.`,
       ),
     )
   }
   if (input.fact.description && PLACEHOLDER.test(input.fact.description)) {
+    const quoted = quoteRegistryText(input.fact.description, 120)
+    const detail = quoted.length > 0 ? ` ("${quoted}")` : ''
     reasons.push(
       reason(
         'placeholder',
         30,
-        `The owner says this is a placeholder ("${truncate(input.fact.description, 120)}"), not a package you should install.`,
+        `The owner says this is a placeholder${detail}, not a package you should install.`,
       ),
     )
   }
@@ -255,8 +260,8 @@ function registryLabel(ecosystem: Ecosystem): string {
   }
 }
 
-function truncate(value: string, max: number): string {
-  const flat = value.replace(/\s+/g, ' ').trim()
+function quoteRegistryText(value: string, max: number): string {
+  const flat = stripPictographs(value).replace(/\s+/g, ' ').trim()
   return flat.length <= max ? flat : `${flat.slice(0, max - 1)}…`
 }
 
