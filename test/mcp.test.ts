@@ -78,6 +78,19 @@ describe('MCP server', () => {
     }
   })
 
+  it('reports a tool error when the name is missing', async () => {
+    const out: string[] = []
+    await serveMcp({
+      input: [`${JSON.stringify(request(1, 'tools/call', { name: 'check_package', arguments: {} }))}\n`],
+      write: (chunk) => out.push(chunk),
+      ctx,
+    })
+    const { frames } = pushFrames(Buffer.alloc(0), Buffer.from(out.join('')))
+    const message = JSON.parse(frames[0]?.body ?? '{}') as { result: { isError: boolean; content: Array<{ text: string }> } }
+    expect(message.result.isError).toBe(true)
+    expect(message.result.content[0]?.text).toContain('needs a name')
+  })
+
   it('ignores the initialized notification and rejects a bad frame', async () => {
     const out: string[] = []
     await serveMcp({

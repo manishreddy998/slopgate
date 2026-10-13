@@ -67,12 +67,16 @@ export async function main(argv: string[], io: CliIo = {}): Promise<number> {
   const args = parseArgv(argv)
   const stdout = io.stdout ?? ((chunk: string) => process.stdout.write(chunk))
   const stderr = io.stderr ?? ((chunk: string) => process.stderr.write(chunk))
-  if (args.flags.get('help') === true || args.command === '' || args.command === 'help') {
+  if (args.flags.get('help') === true || args.command === 'help') {
     stdout(HELP)
     return 0
   }
-  if (args.flags.get('version') === true || args.command === '--version') {
+  if (args.flags.get('version') === true || args.command === 'version') {
     stdout(`${version}\n`)
+    return 0
+  }
+  if (args.command === '') {
+    stdout(HELP)
     return 0
   }
   const cwd = io.cwd ?? process.cwd()

@@ -77,6 +77,41 @@ describe('Claude Code hook', () => {
     expect(allowed.stdout).toBe('')
   })
 
+  it('fails open on broken input unless fail-closed is set', async () => {
+    const open = await runHook({ stdin: '{', client: 'claude', ctx: { config: DEFAULT_CONFIG, cache: new MemoryCache() } })
+    expect(open.exitCode).toBe(0)
+    expect(open.stderr).toContain('ignoring unreadable hook input')
+
+    const closed = await runHook({
+      stdin: '{',
+      client: 'claude',
+      env: { SLOPGATE_FAIL_CLOSED: '1' },
+      ctx: { config: DEFAULT_CONFIG, cache: new MemoryCache() },
+    })
+    expect(closed.exitCode).toBe(2)
+  })
+
+  it('speaks Gemini deny and Cursor allow', async () => {
+    const denied = await runHook({
+      stdin: JSON.stringify({
+        hook_event_name: 'BeforeTool',
+        tool_name: 'run_shell_command',
+        tool_input: { command: 'npm install react-codeshift' },
+      }),
+      cwd: mkdtempSync(join(tmpdir(), 'slopgate-gemini-')),
+      ctx: { config: DEFAULT_CONFIG, cache: new MemoryCache(), fetchImpl: registry, now: () => NOW },
+    })
+    expect(JSON.parse(denied.stdout)).toMatchObject({ decision: 'deny' })
+    expect(denied.stdout).toContain('react-codeshift')
+
+    const allowed = await runHook({
+      stdin: JSON.stringify({ command: 'npm test' }),
+      client: 'cursor',
+      ctx: { config: DEFAULT_CONFIG, cache: new MemoryCache() },
+    })
+    expect(JSON.parse(allowed.stdout)).toEqual({ permission: 'allow' })
+  })
+
   it('stays quiet for commands that do not install packages', async () => {
     const result = await runHook({
       stdin: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'npm test' } }),
@@ -191,6 +226,15 @@ describe('other agent hooks', () => {
 })
 
 describe('cli', () => {
+  it('prints the version and rejects an unknown command', async () => {
+    const out: string[] = []
+    const err: string[] = []
+    expect(await main(['--version'], { stdout: (chunk) => out.push(chunk) })).toBe(0)
+    expect(out.join('').trim()).toMatch(/^\d+\.\d+\.\d+/)
+    expect(await main(['nope'], { stderr: (chunk) => err.push(chunk) })).toBe(2)
+    expect(err.join('')).toContain('unknown command')
+  })
+
   it('prints an allow line for react and exits 1 for a miss', async () => {
     const out: string[] = []
     const cacheDir = mkdtempSync(join(tmpdir(), 'slopgate-cli-cache-'))
