@@ -19,6 +19,8 @@ import {
   type InstallResult,
 } from './hook/install.js'
 import { runHook } from './hook/run.js'
+import { installMcpServer, mcpConfigPath, mcpLaunch } from './mcp/install.js'
+import { serveMcp } from './mcp/server.js'
 import type { LookupContext } from './registry/lookup.js'
 import { worstVerdict } from './risk/score.js'
 import { ECOSYSTEMS, type Ecosystem, type PackageRef } from './types.js'
@@ -28,9 +30,10 @@ const HELP = `slopgate ${version}
 Stop AI coding agents from installing hallucinated packages.
 
 Usage
-  slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install]
+  slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
   slopgate check <package...> [--ecosystem npm|pypi|cargo|go] [--json] [--strict]
   slopgate hook [--client claude|cursor|codex|gemini|auto] [--command <shell>]
+  slopgate mcp
 
   npx slopgate init
   slopgate check react-codeshift
@@ -80,6 +83,8 @@ export async function main(argv: string[], io: CliIo = {}): Promise<number> {
         return await checkCommand(args, cwd, env, io, stdout)
       case 'hook':
         return await hookCommandRun(args, cwd, env, io, stdout, stderr)
+      case 'mcp':
+        return await mcpCommandRun(cwd, env, io, stdout)
       default:
         stderr(`slopgate: unknown command ${args.command}\n\n${HELP}`)
         return 2
@@ -111,6 +116,14 @@ function initCommand(
       result.changed
         ? `Installed the ${CLIENT_LABEL[client]} hook in ${result.path}\n`
         : `${CLIENT_LABEL[client]} hook already present in ${result.path}\n`,
+    )
+    if (args.flags.get('no-mcp') === true) continue
+    const launch = mcpLaunch()
+    const mcp = installMcpServer(client, mcpConfigPath(client, global, cwd, homeDir), launch.command, launch.args)
+    stdout(
+      mcp.changed
+        ? `Installed the ${CLIENT_LABEL[client]} MCP server in ${mcp.path}\n`
+        : `${CLIENT_LABEL[client]} MCP server already present in ${mcp.path}\n`,
     )
   }
   return 0
@@ -166,6 +179,16 @@ async function checkCommand(
   if (results.some((result) => result.verdict === 'block')) return 1
   if (args.flags.get('strict') === true && results.some((result) => result.verdict === 'warn')) return 1
   return 0
+}
+
+async function mcpCommandRun(
+  cwd: string,
+  env: NodeJS.ProcessEnv,
+  io: CliIo,
+  stdout: (chunk: string) => void,
+): Promise<number> {
+  const input = io.stdin !== undefined ? [io.stdin] : process.stdin
+  return serveMcp({ input, write: stdout, ctx: lookupContext(cwd, env, io) })
 }
 
 async function hookCommandRun(
