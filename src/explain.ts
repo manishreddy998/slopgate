@@ -34,3 +34,12 @@ export function explainResults(results: readonly RiskResult[]): string {
 export function summarize(results: readonly RiskResult[]): { verdict: Verdict; text: string } {
   return { verdict: worstVerdict(results), text: explainResults(results) }
 }
+
+/** Human output for `slopgate check`. Allows stay one line; blocks and warnings include the agent text. */
+export function formatReport(results: readonly RiskResult[]): string {
+  if (results.length === 0) return 'No packages to check.\n'
+  if (results.every((result) => result.verdict === 'allow')) {
+    return `${results.map((result) => `${result.name} (${result.ecosystem}) — risk ${result.score}/100 — allow`).join('\n')}\n`
+  }
+  return explainResults(results)
+}
