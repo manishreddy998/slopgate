@@ -28,7 +28,7 @@ import { ECOSYSTEMS, type Ecosystem, type PackageRef } from './types.js'
 import { version } from './version.js'
 
 const HELP = `slopgate ${version}
-Stop AI coding tools from installing fake or unsafe package names.
+Block missing, typosquatted, and newly published packages before install.
 
 Usage
   slopgate init [--global] [--only claude,cursor,codex,gemini] [--no-install] [--no-mcp]
@@ -41,7 +41,7 @@ Usage
   slopgate check react-codeshift
   slopgate scan . --ignore README.md
 
-slopgate does not send usage data. It only talks to the public package sites.
+No telemetry. Queries go only to the public registries.
 `
 
 const BOOLEAN_FLAGS = new Set(['help', 'version', 'global', 'json', 'strict', 'no-install', 'no-mcp'])

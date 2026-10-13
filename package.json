@@ -1,7 +1,7 @@
 {
   "name": "slopgate",
   "version": "0.1.0",
-  "description": "Stops AI coding tools from installing fake or unsafe package names.",
+  "description": "Block missing, typosquatted, and newly published packages before they are installed.",
   "keywords": [
     "slopsquatting",
     "typosquatting",

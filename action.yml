@@ -1,5 +1,5 @@
 name: slopgate
-description: Fail the job when a repo is about to install a fake, look-alike, or very new package.
+description: Fail the job when a repository is about to install a missing, typosquatted, or newly published package.
 branding:
   icon: shield
   color: red
@@ -9,11 +9,11 @@ inputs:
     required: false
     default: .
   ignore:
-    description: Patterns to skip, one per line. A star matches part of a path.
+    description: Newline-separated globs to skip.
     required: false
     default: ''
   strict:
-    description: Also fail the job on a warning, not only on a block.
+    description: Fail on warnings as well as blocks.
     required: false
     default: 'false'
 runs:
@@ -27,7 +27,7 @@ runs:
       shell: bash
       working-directory: ${{ github.action_path }}
       run: npm ci && npm run build
-    - name: Scan for fake package names
+    - name: Scan for risky package names
       shell: bash
       env:
         SLOPGATE_BIN: ${{ github.action_path }}/dist/cli.js

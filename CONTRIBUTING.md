@@ -1,6 +1,6 @@
 # Contributing
 
-slopgate is a small TypeScript command-line tool. It has no extra libraries at run time. Issues and patches are welcome.
+Issues and pull requests are welcome. slopgate is a TypeScript CLI with no runtime dependencies.
 
 ## Setup
 
@@ -14,43 +14,43 @@ npm run build
 node dist/cli.js check react
 ```
 
-`npm test` does not talk to the package sites. The hook, the score, and the scan use fake replies, including the real shape of `react-codeshift` as of 13 October 2026.
+`npm test` does not contact the registries. Hook, scoring, and scan tests use fixtures, including the public shape of `react-codeshift` as of 13 October 2026.
 
-To check the live package sites:
+Live registry check:
 
 ```bash
 npm run build
 SLOPGATE_LIVE=1 npx vitest run test/live.test.ts
 ```
 
-That test blocks `npm install react-codeshift` and allows `npm install react`. It checks both the library and `dist/cli.js`.
+That test denies `npm install react-codeshift` and allows `npm install react`, both in-process and through `dist/cli.js`.
 
-The lowest coverage numbers are in `vitest.config.ts`. `npm run test:coverage` checks them.
+Coverage thresholds are set in `vitest.config.ts`. `npm run test:coverage` enforces them.
 
-## The demo
+## Demo
 
-`docs/demo-check.txt` is real output from `node dist/cli.js check` on the public npm site. After a real run, rebuild the picture. Do not type the transcript by hand:
+`docs/demo-check.txt` is stdout from `node dist/cli.js check` against the public npm registry. Regenerate the SVG from that file after a real run. Do not edit the transcript by hand.
 
 ```bash
 node scripts/render-demo-svg.mjs
 ```
 
-## Scanning this repo
+## Scanning this repository
 
-The README and `examples/bad-skill/SKILL.md` mention `npx react-codeshift` on purpose. A plain scan blocks that example.
+The README and `examples/bad-skill/SKILL.md` mention `npx react-codeshift` on purpose. An unfiltered scan blocks that fixture.
 
 ```bash
 node dist/cli.js scan --ignore README.md --ignore examples --ignore test --ignore CONTRIBUTING.md
 ```
 
-CI does the same. Do not commit a `slopgate.config.json` that allows the example. The product works with no config file, and an allow entry would hide the thing the demo exists to show.
+CI uses the same ignores. Do not commit a `slopgate.config.json` that allowlists the fixture. The default is zero config, and an allow entry would hide the case the demo exists to show.
 
-## Hooks and settings
+## Hooks and config
 
-The hook lets the install continue if slopgate crashes, unless `SLOPGATE_FAIL_CLOSED=1`. Project settings are easy to use, and the coding tool can edit them too. Allow lists are added together, so set `SLOPGATE_IGNORE_PROJECT_CONFIG=1` when the project file should not be able to add an allow.
+The hook fails open unless `SLOPGATE_FAIL_CLOSED=1`. Project config can be edited by the same client the hook is guarding. Allow lists are unioned, so set `SLOPGATE_IGNORE_PROJECT_CONFIG=1` when the project file must not be able to add an allow entry.
 
-There is no usage tracking. Please do not add any.
+Do not add telemetry.
 
 ## Publishing
 
-`prepublishOnly` builds `dist/`. The published files are `dist`, `action.yml`, `README.md`, and `LICENSE`. The package is public. `engines.node` is `>=20`.
+`prepublishOnly` builds `dist/`. Published files are `dist`, `action.yml`, `README.md`, and `LICENSE`. `publishConfig.access` is `public`. `engines.node` is `>=20`.

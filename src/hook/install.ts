@@ -20,7 +20,7 @@ export interface InstallResult {
   changed: boolean
 }
 
-/** Add a Claude Code or Codex hook that runs before a shell command. Other hooks in the file stay. */
+/** Merge a Claude Code or Codex PreToolUse hook. Existing hooks are left in place. */
 export function installClaudeHook(path: string, command: string): InstallResult {
   return installPreToolHook(path, command)
 }

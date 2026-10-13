@@ -20,7 +20,7 @@ export function mcpConfigPath(client: HookClient, global: boolean, projectDir: s
   return join(root, '.gemini', 'settings.json')
 }
 
-/** Point one tool at `slopgate mcp`. Other servers and settings in the file stay. */
+/** Register the slopgate MCP server. Other servers and settings are left in place. */
 export function installMcpServer(
   client: HookClient,
   path: string,

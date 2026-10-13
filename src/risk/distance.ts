@@ -1,4 +1,4 @@
-/** Count letter changes. Swapping two side-by-side letters counts as one change. If the distance is above max, return max + 1. */
+/** Damerau-Levenshtein distance. Adjacent transpositions count as one edit. Values above max return max + 1. */
 export function damerau(left: string, right: string, max = 2): number {
   if (left === right) return 0
   const aLen = left.length

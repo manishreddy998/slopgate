@@ -6,7 +6,7 @@
   <circle cx="28" cy="24" r="6" fill="#c4554a"/>
   <circle cx="48" cy="24" r="6" fill="#d2b06a"/>
   <circle cx="68" cy="24" r="6" fill="#7ea37a"/>
-  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm site, 13 Oct 2026</text>
+  <text x="88" y="29" fill="#a39a8c" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">slopgate — public npm registry, 13 Oct 2026</text>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
 <text x="24" y="64" fill="#f4efe6">$ node dist/cli.js check react-codeshift</text>
 <text x="24" y="84" fill="#e07a70">slopgate blocked this install.</text>

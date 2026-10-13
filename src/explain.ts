@@ -35,7 +35,7 @@ export function summarize(results: readonly RiskResult[]): { verdict: Verdict; t
   return { verdict: worstVerdict(results), text: explainResults(results) }
 }
 
-/** Text for `slopgate check`. Safe packages stay on one line. Blocks and warnings include the full note. */
+/** Human output for `slopgate check`. Allows stay on one line; blocks and warnings include the full report. */
 export function formatReport(results: readonly RiskResult[]): string {
   if (results.length === 0) return 'No packages to check.\n'
   if (results.every((result) => result.verdict === 'allow')) {

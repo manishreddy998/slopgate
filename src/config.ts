@@ -50,7 +50,7 @@ export function loadConfig(cwd: string, env: NodeJS.ProcessEnv = process.env): S
   return clampConfig(config)
 }
 
-/** The nearest slopgate.config.json. If there is none, the nearest package.json "slopgate" key. */
+/** Nearest slopgate.config.json, otherwise the nearest package.json "slopgate" key. */
 export function readProjectConfig(cwd: string): Partial<SlopgateConfig> | null {
   let dir = resolve(cwd)
   for (;;) {

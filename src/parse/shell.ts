@@ -1,4 +1,4 @@
-/** Split a shell script into simple commands and words. Quotes are kept. This is not a full shell. */
+/** Split a shell script into commands and words. Quotes are preserved. This is not a full shell parser. */
 
 export function normalizeScript(input: string): string {
   return input.replace(/\\\r?\n/g, ' ').replace(/\r\n/g, '\n')
@@ -118,7 +118,7 @@ export function commandBase(command: string): string {
   return base.replace(/\.(cmd|exe|bat)$/i, '').toLowerCase()
 }
 
-/** Skip environment assignments and wrappers like sudo, so the real command starts at the package tool. */
+/** Drop environment assignments and wrappers such as sudo so argv starts at the package manager. */
 export function stripWrappers(tokens: string[]): string[] {
   let i = 0
   while (i < tokens.length) {

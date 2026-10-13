@@ -1,7 +1,7 @@
 import type { Ecosystem } from '../types.js'
 import { collapseRepeats, homoglyphKey, separatorKey } from './distance.js'
 
-/** A hand-picked list, not a download of every package. Order is a rough popularity rank, used only to break ties. */
+/** Hand-maintained list. Order is a rough popularity rank used only as a tiebreak. */
 const NPM = [
   'react', 'react-dom', 'react-router', 'react-router-dom', 'react-codemod', 'jscodeshift',
   'scheduler', 'prop-types', 'preact', 'vue', 'vue-router', 'vuex', 'pinia', 'svelte', '@sveltejs/kit',
