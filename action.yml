@@ -1,0 +1,47 @@
+name: slopgate
+description: Fail the job when a repository is about to install a hallucinated, typosquatted, or suspiciously new package.
+branding:
+  icon: shield
+  color: red
+inputs:
+  path:
+    description: Directory to scan
+    required: false
+    default: .
+  ignore:
+    description: Newline-separated globs to skip
+    required: false
+    default: ''
+  strict:
+    description: Also fail when slopgate only warns
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Build slopgate
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci && npm run build
+    - name: Scan for slopsquatted packages
+      shell: bash
+      env:
+        SLOPGATE_BIN: ${{ github.action_path }}/dist/cli.js
+        SLOPGATE_SCAN_PATH: ${{ inputs.path }}
+        SLOPGATE_IGNORE: ${{ inputs.ignore }}
+        SLOPGATE_STRICT: ${{ inputs.strict }}
+      run: |
+        args=()
+        if [ "$SLOPGATE_STRICT" = "true" ]; then
+          args+=(--strict)
+        fi
+        while IFS= read -r pattern; do
+          if [ -n "$pattern" ]; then
+            args+=(--ignore "$pattern")
+          fi
+        done <<< "$SLOPGATE_IGNORE"
+        node "$SLOPGATE_BIN" scan "$SLOPGATE_SCAN_PATH" "${args[@]}"
