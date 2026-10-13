@@ -39,7 +39,7 @@ Usage
   slopgate mcp
 
   npx @slop-gate/cli init
-  slopgate check react-codeshift
+  slopgate check pypi:panadas
   slopgate scan . --ignore README.md
 
 No telemetry. Queries go only to the public registries.

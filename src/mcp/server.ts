@@ -118,7 +118,7 @@ function checkPackageTool(): Record<string, unknown> {
         },
         name: {
           type: 'string',
-          description: 'Package or module name, such as react-codeshift or github.com/gin-gonic/gin.',
+          description: 'Package or module name, such as pandas, react, or github.com/gin-gonic/gin.',
         },
       },
       required: ['name'],
